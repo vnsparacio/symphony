@@ -224,8 +224,9 @@ codex:
   `nil`. Labels are trimmed, lowercased, deduplicated, and blanks are dropped; blockers come from
   inverse `blocks` relations.
 - Dispatchability: the adapter marks an issue dispatchable only when optional assignee routing
-  matches and a `Todo` issue has no non-terminal blocker. The generic scheduler then applies
-  active/terminal states, required labels, claims, retries, and concurrency.
+  matches and an issue in the first configured active state has no non-terminal blocker. The
+  generic scheduler then applies active/terminal states, required labels, claims, retries, and
+  concurrency.
 - Tool: the Linear adapter advertises `linear_graphql`, accepting either a raw query string or an
   object with nonblank `query` and optional object `variables`. Symphony executes it host-side
   with the session-bound endpoint/token and strips declared token environment variables from the
