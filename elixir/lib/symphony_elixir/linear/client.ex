@@ -500,7 +500,9 @@ defmodule SymphonyElixir.Linear.Client do
 
   defp blocked_before_dispatch?(state_name, blockers)
        when is_binary(state_name) and is_list(blockers) do
-    normalize_state_name(state_name) == "todo" and
+    initial_state = Config.settings!().tracker.active_states |> List.first() |> normalize_state_name()
+
+    normalize_state_name(state_name) == initial_state and
       Enum.any?(blockers, fn
         %{state: blocker_state} when is_binary(blocker_state) ->
           not terminal_state?(blocker_state)

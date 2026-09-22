@@ -489,6 +489,43 @@ defmodule SymphonyElixir.WorkspaceAndConfigTest do
     refute issue.dispatchable
   end
 
+  test "linear client honors blockers in a configured initial state" do
+    write_workflow_file!(Workflow.workflow_file_path(),
+      tracker_active_states: ["Ready for Agent", "In Progress", "Rework"]
+    )
+
+    raw_issue = %{
+      "id" => "issue-ready",
+      "identifier" => "MT-READY",
+      "title" => "Ready but blocked",
+      "state" => %{"name" => "Ready for Agent"},
+      "inverseRelations" => %{
+        "nodes" => [
+          %{
+            "type" => "blocks",
+            "issue" => %{
+              "id" => "issue-prerequisite",
+              "identifier" => "MT-PREREQUISITE",
+              "state" => %{"name" => "In Progress"}
+            }
+          }
+        ]
+      }
+    }
+
+    refute Client.normalize_issue_for_test(raw_issue, nil).dispatchable
+
+    terminal_issue =
+      put_in(raw_issue, ["inverseRelations", "nodes", Access.at(0), "issue", "state", "name"], "Done")
+
+    assert Client.normalize_issue_for_test(terminal_issue, nil).dispatchable
+
+    assert Client.normalize_issue_for_test(
+             put_in(raw_issue, ["state", "name"], "In Progress"),
+             nil
+           ).dispatchable
+  end
+
   test "linear client rejects malformed issues instead of returning invalid scheduler records" do
     assert Client.normalize_issue_for_test(
              %{
